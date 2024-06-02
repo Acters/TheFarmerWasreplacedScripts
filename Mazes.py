@@ -4,20 +4,21 @@ def Get_Treasure(Amount):
     while (num_items(Items.Gold)<Amount or Amount==-1):
         StartMaze()
 
-def WallsandPathsAtCurrentPOS():
+def WallsandPathsAtCurrentPOS(Current_Node):
     Current_POS = [get_pos_x(), get_pos_y()]
     Cardinal_Directions = [North,East,South,West]
-    List_of_no_walls = []
-    List_of_Blocked_Paths = []
+    List_of_no_walls = Current_Node[2][1]
+    List_of_Blocked_Paths = Current_Node[3] 
     for i in range(0,len(Cardinal_Directions)):
-        if move(Cardinal_Directions[i]):
-            List_of_no_walls.append(Cardinal_Directions[i])
-            List_of_Blocked_Paths.append(0)
-            if i<2:
-                move(Cardinal_Directions[i+2])
-            else:
-                move(Cardinal_Directions[i-2])
-    Current_Node = [get_pos_x(), get_pos_y(), DetermineForks_and_corners(List_of_no_walls), List_of_Blocked_Paths]    
+        if Cardinal_Directions[i] not in Current_Node[2][1]:
+            if move(Cardinal_Directions[i]):
+                List_of_no_walls.append(Cardinal_Directions[i])
+                List_of_Blocked_Paths.append(0)
+                if i<2:
+                    move(Cardinal_Directions[i+2])
+                else:
+                    move(Cardinal_Directions[i-2])
+    Current_Node = [get_pos_x(), get_pos_y(), DetermineForks_and_corners(List_of_no_walls), List_of_Blocked_Paths]
     return Current_Node
 
 def DetermineForks_and_corners(List_of_no_walls):
@@ -31,11 +32,11 @@ def DetermineForks_and_corners(List_of_no_walls):
 def Navigate_Maze(World_Grid,Chest_Location):
     Prev_direction = None
     if get_entity_type()==Entities.Treasure:
-        return
+        return World_Grid
     while True:
         Current_POS_Num = get_pos_x()+(get_pos_y()*get_world_size())
-        if World_Grid[Current_POS_Num] == [None,None,[None],[]]:
-            World_Grid[Current_POS_Num] = WallsandPathsAtCurrentPOS()
+        if World_Grid[Current_POS_Num] == [None,None,[None, []],[]]:
+            World_Grid[Current_POS_Num] = WallsandPathsAtCurrentPOS(World_Grid[Current_POS_Num])
         else:
             Current_Node = World_Grid[Current_POS_Num]
             if Prev_direction == None:
@@ -54,10 +55,9 @@ def Navigate_Maze(World_Grid,Chest_Location):
                 Current_POS_Num = get_pos_x()+(get_pos_y()*get_world_size())
                 Current_Node = World_Grid[Current_POS_Num]
                 if get_entity_type()==Entities.Treasure:
-                    return
-                if Current_Node == [None,None,[None],[]]:
-                    break
-                elif Current_Node[2][0] == 0:
+                    return World_Grid
+                World_Grid[Current_POS_Num] = WallsandPathsAtCurrentPOS(World_Grid[Current_POS_Num])
+                if Current_Node[2][0] == 0:
                     if move(Prev_direction) == False:
                         move(Current_Node[2][1][0])
                         Prev_direction = Current_Node[2][1][0]
@@ -123,7 +123,7 @@ def TravelBetweenNodes():
 def Create_Grid():
     World_Grid = []
     for i in range(0,get_world_size()**2):
-        World_Grid.append([None,None,[None],[]])
+        World_Grid.append([None,None,[None, []],[]])
     return World_Grid
 
 def StartMaze():
@@ -136,10 +136,14 @@ def StartMaze():
         plant(Entities.Bush)
         while get_entity_type()==Entities.Bush:
             use_item(Items.Fertilizer)
+    World_Grid = Create_Grid()
     while True:
-        World_Grid = Create_Grid()
         if get_entity_type()!=Entities.Treasure:
-            Navigate_Maze(World_Grid,Chest_Location)
+            World_Grid = Navigate_Maze(World_Grid,Chest_Location)
+            for Positions in World_Grid:
+                if Positions != [None,None,[None, [None]],[]]:
+                    for i in range(0,len(Positions[2][1])):
+                        Positions[3][i] = 1
         if measure() != None and num_items(Items.Fertilizer) > 1:
             Chest_Location = [measure()[0], measure()[1]]
             while num_items(Items.Fertilizer) > 1:

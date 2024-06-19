@@ -128,7 +128,6 @@ def Create_Grid():
     return World_Grid
 
 def StartMaze():
-    #start Chest_Location at center of world because it is unknown
     Chest_Location = [-1,-1]
     if num_items(Items.Fertilizer) < 1000:
         trade_management(Items.Fertilizer, 1000-num_items(Items.Fertilizer))

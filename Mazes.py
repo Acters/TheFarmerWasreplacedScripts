@@ -74,14 +74,15 @@ def Navigate_Maze(World_Grid,Chest_Location):
                 elif Current_Node[2][0] == 1:
                     List_of_Open_Paths = []
                     Desired_direction = []
-                    if get_pos_x() < Chest_Location[0]:
-                            Desired_direction.append(East)
-                    elif get_pos_x() > Chest_Location[0]:
-                            Desired_direction.append(West)
-                    if get_pos_y() < Chest_Location[1]:
-                            Desired_direction.append(North)
-                    elif get_pos_y() > Chest_Location[1]:
-                            Desired_direction.append(South)
+                    if Chest_Location != [-1,-1]:
+                        if get_pos_x() < Chest_Location[0]:
+                                Desired_direction.append(East)
+                        elif get_pos_x() > Chest_Location[0]:
+                                Desired_direction.append(West)
+                        if get_pos_y() < Chest_Location[1]:
+                                Desired_direction.append(North)
+                        elif get_pos_y() > Chest_Location[1]:
+                                Desired_direction.append(South)
                     for i in range(0,len(Current_Node[2][1])):
                         Path_to_consider = Current_Node[2][1][i]
                         if Path_to_consider == Opposite_Prev_direction and 1 not in Current_Node[3] and 2 not in Current_Node[3]:
@@ -128,7 +129,7 @@ def Create_Grid():
 
 def StartMaze():
     #start Chest_Location at center of world because it is unknown
-    Chest_Location = [get_world_size()//2,get_world_size()//2]
+    Chest_Location = [-1,-1]
     if num_items(Items.Fertilizer) < 1000:
         trade_management(Items.Fertilizer, 1000-num_items(Items.Fertilizer))
     if get_entity_type() != Entities.Hedge:

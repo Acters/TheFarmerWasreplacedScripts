@@ -1,8 +1,24 @@
-Get_Treasure(-1)
+#Get_Treasure(-1) # do infinite runs
+n = 1
+upgrade_multiplier = 5 # max multiplier is 500%
+amount_of_treasure_each_full_run = (get_world_size()**2)*300*upgrade_multiplier
+Get_Treasure((num_items(Items.Gold) + (150000 * n) + 1) # do only n runs
 
 def Get_Treasure(Amount):
+    completed_runs = 0
+    total_time_passed = 0
     while (num_items(Items.Gold)<Amount or Amount==-1):
+        start_time = get_time()
         StartMaze()
+        completed_runs += 1
+        Amount_of_operations = get_op_count()
+        stop_time = get_time()
+        time_to_completion = stop_time - start_time
+        total_time_passed += time_to_completion
+        average_time_of_completions = total_time_passed // completed_runs
+        quick_print("Previous full maze run time to complete: ", time_to_completion)
+        quick_print("Average time to complete each full maze run: ", average_time_of_completions)
+        quick_print("Total full maze run time: ", total_time_passed)
 
 def WallsandPathsAtCurrentPOS(Current_Node):
     Current_POS = [get_pos_x(), get_pos_y()]
@@ -128,22 +144,35 @@ def Create_Grid():
     return World_Grid
 
 def StartMaze():
+    completed_runs = 0
+    total_time_passed = 0
+    #start Chest_Location at center of world because it is unknown
     Chest_Location = [-1,-1]
     if num_items(Items.Fertilizer) < 1000:
         trade_management(Items.Fertilizer, 1000-num_items(Items.Fertilizer))
-    if get_entity_type() != Entities.Hedge:
+    entity_type = get_entity_type()
+    if entity_type not in [Entities.Hedge,Entities.Treasure]:
         clear()
         plant(Entities.Bush)
         while get_entity_type()==Entities.Bush:
             use_item(Items.Fertilizer)
     World_Grid = Create_Grid()
     while True:
+        start_time = get_time()
+        completed_runs += 1
         if get_entity_type()!=Entities.Treasure:
             World_Grid = Navigate_Maze(World_Grid,Chest_Location)
             for Positions in World_Grid:
                 if Positions != [None,None,[None, [None]],[]]:
                     for i in range(0,len(Positions[2][1])):
                         Positions[3][i] = 1
+        stop_time = get_time()
+        time_to_completion = stop_time - start_time
+        total_time_passed += time_to_completion
+        average_time_of_completions = total_time_passed // completed_runs
+        quick_print("Previous run's time to complete: ", time_to_completion)
+        quick_print("Average time to complete each run: ", average_time_of_completions)
+        quick_print("Total run time: ", total_time_passed)
         if measure() != None and num_items(Items.Fertilizer) > 1:
             Chest_Location = [measure()[0], measure()[1]]
             while num_items(Items.Fertilizer) > 1:

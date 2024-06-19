@@ -2,7 +2,7 @@
 n = 1
 upgrade_multiplier = 5 # max multiplier is 500%
 amount_of_treasure_each_full_run = (get_world_size()**2)*300*upgrade_multiplier
-Get_Treasure(num_items(Items.Gold) + (150000 * n) + 1) # do only n runs
+Get_Treasure(num_items(Items.Gold) + (amount_of_treasure_each_full_run * n) - 1) # do only n runs
 
 def Get_Treasure(Amount):
     completed_runs = 0

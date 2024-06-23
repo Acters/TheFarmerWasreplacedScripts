@@ -1,8 +1,9 @@
 #Get_Treasure(-1) # do infinite runs
+clear()
 n = 1
 upgrade_multiplier = 5 # max multiplier is 500%
 amount_of_treasure_each_full_run = (get_world_size()**2)*300*upgrade_multiplier
-Get_Treasure(num_items(Items.Gold) + (amount_of_treasure_each_full_run * n) - 1) # do only n runs
+Get_Treasure((num_items(Items.Gold) + (amount_of_treasure_each_full_run * n) - 1)) # do only n runs
 
 def Get_Treasure(Amount):
     completed_runs = 0
@@ -10,15 +11,16 @@ def Get_Treasure(Amount):
     while (num_items(Items.Gold)<Amount or Amount==-1):
         start_time = get_time()
         StartMaze()
-        completed_runs += 1
         Amount_of_operations = get_op_count()
         stop_time = get_time()
         time_to_completion = stop_time - start_time
         total_time_passed += time_to_completion
-        average_time_of_completions = total_time_passed // completed_runs
+        completed_runs += 1
+        average_time_of_completions = total_time_passed / completed_runs
         quick_print("Previous full maze run time to complete: ", time_to_completion)
         quick_print("Average time to complete each full maze run: ", average_time_of_completions)
         quick_print("Total full maze run time: ", total_time_passed)
+        quick_print("Total full maze operational cost: ", Amount_of_operations)
 
 def WallsandPathsAtCurrentPOS(Current_Node):
     Current_POS = [get_pos_x(), get_pos_y()]
@@ -45,7 +47,7 @@ def DetermineForks_and_corners(List_of_no_walls):
     else:
         return [1, List_of_no_walls]
 
-def Navigate_Maze(World_Grid,Chest_Location):
+def Navigate_Maze(World_Grid,Chest_Location,completed_runs):
     Prev_direction = None
     if get_entity_type()==Entities.Treasure:
         return World_Grid
@@ -69,10 +71,10 @@ def Navigate_Maze(World_Grid,Chest_Location):
                 elif Prev_direction == East:
                     Opposite_Prev_direction = West
                 Current_POS_Num = get_pos_x()+(get_pos_y()*get_world_size())
-                Current_Node = World_Grid[Current_POS_Num]
                 if get_entity_type()==Entities.Treasure:
                     return World_Grid
                 World_Grid[Current_POS_Num] = WallsandPathsAtCurrentPOS(World_Grid[Current_POS_Num])
+                Current_Node = World_Grid[Current_POS_Num]
                 if Current_Node[2][0] == 0:
                     if move(Prev_direction) == False:
                         move(Current_Node[2][1][0])
@@ -88,55 +90,64 @@ def Navigate_Maze(World_Grid,Chest_Location):
                             Prev_direction = i
                             break
                 elif Current_Node[2][0] == 1:
-                    List_of_Open_Paths = []
-                    Desired_direction = []
-                    if Chest_Location != [-1,-1]:
-                        if get_pos_x() < Chest_Location[0]:
-                                Desired_direction.append(East)
-                        elif get_pos_x() > Chest_Location[0]:
-                                Desired_direction.append(West)
-                        if get_pos_y() < Chest_Location[1]:
-                                Desired_direction.append(North)
-                        elif get_pos_y() > Chest_Location[1]:
-                                Desired_direction.append(South)
-                    for i in range(0,len(Current_Node[2][1])):
-                        Path_to_consider = Current_Node[2][1][i]
-                        if Path_to_consider == Opposite_Prev_direction and 1 not in Current_Node[3] and 2 not in Current_Node[3]:
-                            Current_Node[3][i] += 1
-                        if Current_Node[3][i] < 2 and Path_to_consider in Desired_direction:
-                            List_of_Open_Paths.append([Path_to_consider,i])
-                    for i in range(0,len(Current_Node[2][1])):
-                        Path_to_consider = Current_Node[2][1][i]
-                        if Path_to_consider == Opposite_Prev_direction and 1 not in Current_Node[3] and 2 not in Current_Node[3]:
-                            Current_Node[3][i] += 1
-                        if Current_Node[3][i] < 2 and Path_to_consider not in Desired_direction:
-                            List_of_Open_Paths.append([Path_to_consider,i])
-                    if len(List_of_Open_Paths)==0:
-                        for i in range(0,len(Current_Node[2][1])):
-                            Path_to_consider = Current_Node[2][1][i]
-                            Current_Node[3][i] = 1
-                            List_of_Open_Paths.append([Path_to_consider,i])
-                        break
-                    for i in range(0,len(List_of_Open_Paths)):
-                        if (List_of_Open_Paths[i][0] in Desired_direction):
-                            move(List_of_Open_Paths[i][0])
-                            Current_Node[3][List_of_Open_Paths[i][1]] += 1
-                            Prev_direction = List_of_Open_Paths[i][0]
+                    List_of_Open_Paths = calculate_list_of_paths(Current_Node,Opposite_Prev_direction,Chest_Location)
+                    if completed_runs < 00:
+                        List_of_Open_Path = depth_search(List_of_Open_Path,World_Grid,Chest_Location)
+                    for Path_to_move in List_of_Open_Paths:
+                        if (Current_Node[3][Path_to_move[1]]<2):
+                            move(Path_to_move[0])
+                            Current_Node[3][Path_to_move[1]] += 1
+                            Prev_direction = Path_to_move[0]
                             break
-                        elif Current_Node[3][List_of_Open_Paths[i][1]]==0:
-                            move(List_of_Open_Paths[i][0])
-                            Current_Node[3][List_of_Open_Paths[i][1]] += 1
-                            Prev_direction = List_of_Open_Paths[i][0]
-                            break
-                        elif i+1==len(List_of_Open_Paths):
-                            move(List_of_Open_Paths[i][0])
-                            Current_Node[3][List_of_Open_Paths[i][1]] += 1
-                            Prev_direction = List_of_Open_Paths[i][0]
+                        else:
+                            move(Path_to_move[0])
+                            Current_Node[3][Path_to_move[1]] += 1
+                            Prev_direction = Path_to_move[0]
                             break
 
-def TravelBetweenNodes():
+def calculate_list_of_paths(Current_Node,Opposite_Prev_direction,Chest_Location):
+    List_of_Open_Paths = []
+    Desired_direction = []
+    if Chest_Location != [-1,-1]:
+        if get_pos_x() < Chest_Location[0]:
+            Desired_direction.append(East)
+        elif get_pos_x() > Chest_Location[0]:
+            Desired_direction.append(West)
+        if get_pos_y() < Chest_Location[1]:
+            Desired_direction.append(North)
+        elif get_pos_y() > Chest_Location[1]:
+            Desired_direction.append(South)
+    for i in range(0,len(Current_Node[2][1])):
+        Path_to_consider = Current_Node[2][1][i]
+        if Path_to_consider == Opposite_Prev_direction and Current_Node[3][i] != 2:
+            Current_Node[3][i] += 1
+        if Current_Node[3][i] < 2 and Path_to_consider in Desired_direction:
+            if len(List_of_Open_Paths) == 0:
+                List_of_Open_Paths.append([Path_to_consider,i])
+            elif Current_Node[3][i] > Current_Node[3][List_of_Open_Paths[0][1]]:
+                List_of_Open_Paths.append([Path_to_consider,i])
+            else:
+                List_of_Open_Paths.insert(0,[Path_to_consider,i])
+    for i in range(0,len(Current_Node[2][1])):
+        Path_to_consider = Current_Node[2][1][i]
+        if Current_Node[3][i] < 2 and Path_to_consider not in Desired_direction:
+            List_of_Open_Paths.append([Path_to_consider,i])
+    if len(List_of_Open_Paths)==0:
+        for i in range(0,len(Current_Node[2][1])):
+            if Current_Node[3][i] >= 2:
+                Current_Node[3][i] = 1
+            if Current_Node[2][1][i] != Opposite_Prev_direction:
+                Path_to_consider = Current_Node[2][1][i]
+                List_of_Open_Paths.insert(random() * len(List_of_Open_Paths) // 1,[Path_to_consider,i])
+    return List_of_Open_Paths
+
+def depth_search(List_of_Open_Path,World_Grid):
     measure()
-    
+    Current_POS_Num = get_pos_x()+(get_pos_y()*get_world_size())
+    Current_Node = World_Grid[Current_POS_Num]
+    for paths in List_of_Open_Path:
+        measure()
+
 def Create_Grid():
     World_Grid = []
     for i in range(0,get_world_size()**2):
@@ -146,6 +157,7 @@ def Create_Grid():
 def StartMaze():
     completed_runs = 0
     total_time_passed = 0
+    start_time = get_time()
     #start Chest_Location at center of world because it is unknown
     Chest_Location = [-1,-1]
     if num_items(Items.Fertilizer) < 1000:
@@ -158,10 +170,9 @@ def StartMaze():
             use_item(Items.Fertilizer)
     World_Grid = Create_Grid()
     while True:
-        start_time = get_time()
         completed_runs += 1
         if get_entity_type()!=Entities.Treasure:
-            World_Grid = Navigate_Maze(World_Grid,Chest_Location)
+            World_Grid = Navigate_Maze(World_Grid,Chest_Location,completed_runs)
             for Positions in World_Grid:
                 if Positions != [None,None,[None, [None]],[]]:
                     for i in range(0,len(Positions[2][1])):
@@ -169,7 +180,7 @@ def StartMaze():
         stop_time = get_time()
         time_to_completion = stop_time - start_time
         total_time_passed += time_to_completion
-        average_time_of_completions = total_time_passed // completed_runs
+        average_time_of_completions = total_time_passed / completed_runs
         quick_print("Previous run's time to complete: ", time_to_completion)
         quick_print("Average time to complete each run: ", average_time_of_completions)
         quick_print("Total run time: ", total_time_passed)
@@ -183,3 +194,4 @@ def StartMaze():
         else:
             harvest()
             break
+        start_time = get_time()

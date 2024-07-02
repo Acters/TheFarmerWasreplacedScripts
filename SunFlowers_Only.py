@@ -62,7 +62,7 @@ def harvest_sunflower_power():
                 if list_of_powers_on_field[j] == highest_num_Petals_Measured:
                     list_of_powers_on_field[j] = 0
             highest_num_Petals_Measured = max(list_of_powers_on_field)
-        temp = {}
+        temp = []
         for i in range(0,get_pos_x()):
             move(West)
         for i in range(0,get_pos_y()):

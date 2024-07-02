@@ -72,7 +72,9 @@ def harvest_sunflower_power():
             plant_SunFlowers()
             list_of_powers_on_field = []
             highest_num_Petals_Measured = 15
-            list_of_highest_Power_Locations = {}
+            list_of_highest_Power_Locations = []
+            for x in range(0,15+2):
+                list_of_highest_Power_Locations.append([])
        
 def plant_SunFlowers():
     failed_watering=0

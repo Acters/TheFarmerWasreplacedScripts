@@ -1,12 +1,12 @@
 while True:
     clear()
     plant_SunFlowers()
-    highest_num_Petals_Measured = 15
-    list_of_powers_on_field = []
-    list_of_highest_Power_Locations = {}
     harvest_sunflower_power()
 
 def harvest_sunflower_power():
+    highest_num_Petals_Measured = 15
+    list_of_powers_on_field = []
+    list_of_highest_Power_Locations = {}
     while True:
         for i in range(0,get_world_size()):
             for j in range(0,get_world_size()):

@@ -6,7 +6,9 @@ while True:
 def harvest_sunflower_power():
     highest_num_Petals_Measured = 15
     list_of_powers_on_field = []
-    list_of_highest_Power_Locations = {}
+    list_of_highest_Power_Locations = []
+    for x in range(0,15+2):
+        list_of_highest_Power_Locations.append([])
     while True:
         for i in range(0,get_world_size()):
             for j in range(0,get_world_size()):
@@ -15,24 +17,15 @@ def harvest_sunflower_power():
                     if measure() != None:
                         if measure() not in list_of_powers_on_field:
                             list_of_powers_on_field.append(measure())
-                        if measure() not in list_of_highest_Power_Locations:
-                            list_of_highest_Power_Locations[measure()] = [[get_pos_x(),get_pos_y()]]
-                        else:
-                            list_of_highest_Power_Locations[measure()].append([get_pos_x(),get_pos_y()])
+                        list_of_highest_Power_Locations[measure()].append([get_pos_x(),get_pos_y()])
                     if measure(North) != None and (get_world_size()-1 != get_pos_y()):
                         if measure(North) not in list_of_powers_on_field:
                             list_of_powers_on_field.append(measure(North))
-                        if measure(North) not in list_of_highest_Power_Locations:
-                            list_of_highest_Power_Locations[measure(North)] = [[get_pos_x(),get_pos_y()+1]]
-                        else:
-                            list_of_highest_Power_Locations[measure(North)].append([get_pos_x(),get_pos_y()+1])
+                        list_of_highest_Power_Locations[measure(North)].append([get_pos_x(),get_pos_y()+1])
                     if measure(South) != None and (get_pos_y() != 0):
                         if measure(South) not in list_of_powers_on_field:
                             list_of_powers_on_field.append(measure(South))
-                        if measure(South) not in list_of_highest_Power_Locations:
-                            list_of_highest_Power_Locations[measure(South)] = [[get_pos_x(),get_pos_y()-1]]
-                        else:
-                            list_of_highest_Power_Locations[measure(South)].append([get_pos_x(),get_pos_y()-1])
+                        list_of_highest_Power_Locations[measure(South)].append([get_pos_x(),get_pos_y()-1])
             move(East)
         highest_num_Petals_Measured = max(list_of_powers_on_field)
         for k in range(0,len(list_of_highest_Power_Locations)):
@@ -63,10 +56,7 @@ def harvest_sunflower_power():
                         else:
                             trade_management(Items.Sunflower_Seed, (get_world_size()**2)*100)
                             return
-                if measure() in list_of_highest_Power_Locations:
-                    list_of_highest_Power_Locations[measure()].append([get_pos_x(),get_pos_y()])
-                else:
-                    list_of_highest_Power_Locations[measure()]=[[get_pos_x(),get_pos_y()]]
+                list_of_highest_Power_Locations[measure()].append([get_pos_x(),get_pos_y()])
             list_of_highest_Power_Locations[highest_num_Petals_Measured] = []
             for j in range(0,len(list_of_powers_on_field)):
                 if list_of_powers_on_field[j] == highest_num_Petals_Measured:
